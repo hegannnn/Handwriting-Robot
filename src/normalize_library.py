@@ -27,8 +27,6 @@ full_lib = {}
 for filename in os.listdir(LIBRARY_DIR):
     if filename.endswith('_strokes.json'):
         raw_name = filename.split('_')[0]
-        
-        # Mapping logic: 'a1' -> 'A', 'a' -> 'a'
         if len(raw_name) == 2 and raw_name.endswith('1'):
             char_key = raw_name[0].upper()
         else:

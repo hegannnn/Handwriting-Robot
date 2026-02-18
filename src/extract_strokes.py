@@ -37,10 +37,8 @@ def extract_letter_data(image_path, letter_name):
     
     y_indices, x_indices = np.where(skeleton > 0)
     points = [[int(x), int(y)] for x, y in zip(x_indices, y_indices)]
-    
     all_strokes = []
     remaining_points = points
-    
     while len(remaining_points) > 15: 
         stroke, remaining_points = sort_points(remaining_points)
         if len(stroke) > 10: 
