@@ -17,33 +17,12 @@ from gcode_generator import strokes_to_gcode
 
 BLOCK_WORDS = ["signature", "sign", "sincerely"]
 
-# Layout constants (must match word_assembler values)
-LINE_TOP  = 25
-CAP_H     = 7
-SPACING   = 13
-DESC_DROP = 2.0
-
 
 def render_preview(text, strokes):
-    """Show a ruled-paper matplotlib preview of the handwriting."""
+    """Show a plain A4 white-paper matplotlib preview of the handwriting."""
     fig, ax = plt.subplots(figsize=(8.27, 11.69))
-    fig.patch.set_facecolor("#fffef0")
-    ax.set_facecolor("#fffef0")
-
-    # Ruled lines: cap-top, baseline, descender guide
-    for i in range(22):
-        top      = LINE_TOP + i * SPACING
-        baseline = top + CAP_H
-        desc     = baseline + DESC_DROP
-        if top > 297:
-            break
-        ax.axhline(top,      color="#d0e4f0", linewidth=0.35, zorder=0)
-        ax.axhline(baseline, color="#a0bcd8", linewidth=0.55, zorder=1)
-        ax.axhline(desc,     color="#d4c8e0", linewidth=0.35,
-                   linestyle="--", dashes=(4, 6), zorder=0)
-
-    # Left margin
-    ax.axvline(10, color="#f0b0b0", linewidth=0.5, zorder=0)
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
 
     # Handwriting strokes
     for stroke in strokes:
@@ -56,13 +35,17 @@ def render_preview(text, strokes):
     ax.set_aspect("equal")
     ax.set_xlim(0, 210)
     ax.set_ylim(297, 0)
-    ax.set_title(f'Handwriting Preview  -  "{text}"', fontsize=9, pad=8)
-    ax.set_xlabel("X (mm)", fontsize=7)
-    ax.set_ylabel("Y (mm)", fontsize=7)
-    ax.tick_params(labelsize=7)
 
+    # Clean paper look: no ticks, no labels, no borders
+    ax.axis("off")
+
+    # Thin light-grey paper border (simulates sheet edge)
     for spine in ax.spines.values():
-        spine.set_edgecolor("#bbbbbb")
+        spine.set_visible(True)
+        spine.set_edgecolor("#cccccc")
+        spine.set_linewidth(0.8)
+
+    ax.set_title(f'"{text}"', fontsize=9, pad=6, color="#444444")
 
     plt.tight_layout()
     plt.show()
