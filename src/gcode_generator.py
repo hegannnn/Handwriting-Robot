@@ -69,7 +69,7 @@ def strokes_to_gcode(strokes, filename="handwriting"):
         f.write("\n".join(gcode))
 
     print(f"G-CODE SAVED: {filepath}")
-    print(f"{len(strokes)} strokes → Ready for EasyDraw V2!")
+    print(f"{len(strokes)} strokes → G-code ready!")
     return gcode
 
 

@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from word_assembler import assemble_human_hierarchy_text
 from gcode_generator import strokes_to_gcode
 
-BLOCK_WORDS = ["signature", "sign", "sincerely"]
+BLOCK_WORDS = ["Signature", "Sign here", "Yours sincerely", "Yours faithfully"]
 
 
 def render_preview(text, strokes):
