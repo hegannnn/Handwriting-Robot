@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized Handwriting Robot</title>
+    <style>
+        :root {
+            --ink-900: #0f2d3a;
+            --ink-700: #1f4a58;
+            --ink-500: #2f6b7a;
+            --paper: #f8f1df;
+            --paper-line: #d9d1c2;
+            --accent-red: #ad3d34;
+            --accent-olive: #596c4b;
+            --card: rgba(248, 241, 223, 0.82);
+            --border: rgba(19, 54, 70, 0.2);
+            --shadow: 0 20px 45px rgba(8, 27, 34, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--ink-900);
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255, 226, 193, 0.7), transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(180, 212, 214, 0.65), transparent 42%),
+                linear-gradient(145deg, #d9e7e2 0%, #f3e5cf 50%, #ddc8ae 100%);
+            padding: 28px;
+            display: grid;
+            place-items: center;
+        }
+
+        .app {
+            width: min(1100px, 100%);
+            display: grid;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 22px;
+        }
+
+        .panel {
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--card);
+            backdrop-filter: blur(8px);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: rise 450ms ease both;
+        }
+
+        .panel-head {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(130deg, rgba(47, 107, 122, 0.15), rgba(173, 61, 52, 0.14));
+        }
+
+        .panel-head h1,
+        .panel-head h2 {
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .panel-head p {
+            margin: 6px 0 0;
+            color: var(--ink-700);
+            font-size: 0.95rem;
+        }
+
+        .panel-body {
+            padding: 20px 22px 24px;
+        }
+
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--ink-700);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            resize: vertical;
+            border-radius: 14px;
+            border: 1px solid rgba(31, 74, 88, 0.28);
+            background: rgba(255, 252, 246, 0.95);
+            color: var(--ink-900);
+            font-size: 1.04rem;
+            line-height: 1.45;
+            padding: 14px;
+            outline: none;
+            transition: border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        textarea:focus {
+            border-color: var(--ink-500);
+            box-shadow: 0 0 0 4px rgba(47, 107, 122, 0.15);
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 11px 13px;
+            font-size: 0.94rem;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 140ms ease, filter 140ms ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.04);
+        }
+
+        .btn-preview {
+            background: var(--ink-500);
+            color: #fff;
+        }
+
+        .btn-mic {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        .btn-clear {
+            background: rgba(31, 74, 88, 0.12);
+            color: var(--ink-900);
+        }
+
+        .btn-run {
+            background: var(--accent-olive);
+            color: #fff;
+        }
+
+        .chips {
+            margin-top: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            border: 1px solid rgba(31, 74, 88, 0.2);
+            background: rgba(255, 250, 238, 0.8);
+            color: var(--ink-700);
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.84rem;
+        }
+
+        .canvas-wrap {
+            position: relative;
+            border: 1px solid rgba(31, 74, 88, 0.26);
+            border-radius: 16px;
+            overflow: hidden;
+            background:
+                repeating-linear-gradient(to bottom, var(--paper) 0px, var(--paper) 31px, var(--paper-line) 32px),
+                linear-gradient(to right, transparent 53px, rgba(173, 61, 52, 0.3) 54px, transparent 55px);
+            min-height: 410px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 410px;
+            display: block;
+        }
+
+        .status {
+            margin-top: 12px;
+            font-size: 0.92rem;
+            color: var(--ink-700);
+            min-height: 1.2rem;
+        }
+
+        .status.error {
+            color: #81261f;
+        }
+
+        .status.success {
+            color: #355d27;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 920px) {
+            body {
+                padding: 16px;
+            }
+
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            canvas,
+            .canvas-wrap {
+                min-height: 320px;
+                height: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+        <section class="panel">
+            <header class="panel-head">
+                <h1>Personalized Handwriting Robot</h1>
+            </header>
+            <div class="panel-body">
+                <div class="meta">
+                    <span>Input</span>
+                    <span id="charCount">0 chars</span>
+                </div>
+                <textarea id="textInput" placeholder="Write a note, label, or short message..."></textarea>
+
+                <div class="actions">
+                    <button id="previewBtn" class="btn-preview" type="button">Refresh Preview</button>
+                    <button id="micBtn" class="btn-mic" type="button">Use Microphone</button>
+                    <button id="clearBtn" class="btn-clear" type="button">Clear</button>
+                    <button id="runBtn" class="btn-run" type="button">Start Writing</button>
+                </div>
+
+                <div class="chips">
+                    <span class="chip" id="speechState">Speech: checking...</span>
+                    <span class="chip">API: /preview + /process</span>
+                    <span class="chip">Canvas: live scaled render</span>
+                </div>
+
+                <p id="status" class="status">Ready.</p>
+            </div>
+        </section>
+
+        <section class="panel">
+            <header class="panel-head">
+                <h2>Preview</h2>
+            </header>
+            <div class="panel-body">
+                <div class="canvas-wrap">
+                    <canvas id="previewCanvas"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const textInput = document.getElementById("textInput");
+        const canvas = document.getElementById("previewCanvas");
+        const statusEl = document.getElementById("status");
+        const speechStateEl = document.getElementById("speechState");
+        const charCountEl = document.getElementById("charCount");
+        const ctx = canvas.getContext("2d");
+
+        const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognitionCtor) {
+            recognition = new SpeechRecognitionCtor();
+            recognition.lang = "en-US";
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            speechStateEl.textContent = "Speech: available";
+        } else {
+            speechStateEl.textContent = "Speech: not supported in this browser";
+            document.getElementById("micBtn").disabled = true;
+            document.getElementById("micBtn").style.opacity = "0.55";
+            document.getElementById("micBtn").style.cursor = "not-allowed";
+        }
+
+        function setStatus(message, type = "") {
+            statusEl.textContent = message;
+            statusEl.className = "status";
+            if (type) {
+                statusEl.classList.add(type);
+            }
+        }
+
+        function resizeCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            const width = Math.max(1, canvas.clientWidth);
+            const height = canvas.clientHeight;
+            canvas.width = Math.floor(width * dpr);
+            canvas.height = Math.floor(height * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function normalizeArrangement(arrangement) {
+            if (!Array.isArray(arrangement)) return [];
+            if (!arrangement.length) return [];
+
+            if (Array.isArray(arrangement[0]) && arrangement[0].length === 2 && typeof arrangement[0][0] === "number") {
+                return [arrangement];
+            }
+
+            return arrangement.filter((stroke) => Array.isArray(stroke) && stroke.length > 1);
+        }
+
+        function drawArrangement(rawArrangement) {
+            const strokes = normalizeArrangement(rawArrangement);
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+
+            ctx.clearRect(0, 0, width, height);
+
+            if (!strokes.length) {
+                setStatus("No strokes returned for preview.");
+                return;
+            }
+
+            const points = strokes.flat();
+            const xs = points.map((p) => p[0]);
+            const ys = points.map((p) => p[1]);
+
+            const minX = Math.min(...xs);
+            const maxX = Math.max(...xs);
+            const minY = Math.min(...ys);
+            const maxY = Math.max(...ys);
+
+            const dataWidth = Math.max(maxX - minX, 1);
+            const dataHeight = Math.max(maxY - minY, 1);
+
+            const pad = 24;
+            const scale = Math.min((width - pad * 2) / dataWidth, (height - pad * 2) / dataHeight);
+            const offsetX = (width - dataWidth * scale) / 2;
+            const offsetY = (height - dataHeight * scale) / 2;
+
+            ctx.strokeStyle = "#123744";
+            ctx.lineWidth = 1.6;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            strokes.forEach((stroke) => {
+                ctx.beginPath();
+                stroke.forEach((point, i) => {
+                    const x = (point[0] - minX) * scale + offsetX;
+                    const y = (point[1] - minY) * scale + offsetY;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            });
+
+            setStatus(`Preview updated: ${strokes.length} strokes.`, "success");
+        }
+
+        async function postJson(url, payload) {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Request failed (${response.status})`);
+            }
+
+            return response.json();
+        }
+
+        async function updatePreview() {
+            const text = textInput.value.trim();
+            if (!text) {
+                ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+                setStatus("Ready.");
+                return;
+            }
+
+            setStatus("Fetching preview...");
+            try {
+                const data = await postJson("/preview", { text });
+                drawArrangement(data.arrangement);
+            } catch (err) {
+                setStatus(`Preview failed: ${err.message}`, "error");
+            }
+        }
+
+        async function sendToRobot() {
+            const text = textInput.value.trim();
+            if (!text) {
+                setStatus("Enter text before starting the robot.", "error");
+                return;
+            }
+
+            setStatus("Sending write command...");
+            try {
+                const data = await postJson("/process", { text });
+                setStatus(data.message || "Robot started.", "success");
+            } catch (err) {
+                setStatus(`Process failed: ${err.message}`, "error");
+            }
+        }
+
+        function updateCharCount() {
+            const count = textInput.value.length;
+            charCountEl.textContent = `${count} char${count === 1 ? "" : "s"}`;
+        }
+
+        let previewTimer = null;
+        function schedulePreview() {
+            clearTimeout(previewTimer);
+            previewTimer = setTimeout(updatePreview, 320);
+        }
+
+        document.getElementById("previewBtn").addEventListener("click", updatePreview);
+        document.getElementById("runBtn").addEventListener("click", sendToRobot);
+        document.getElementById("clearBtn").addEventListener("click", () => {
+            textInput.value = "";
+            updateCharCount();
+            ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+            setStatus("Cleared.");
+        });
+
+        textInput.addEventListener("input", () => {
+            updateCharCount();
+            schedulePreview();
+        });
+
+        document.getElementById("micBtn").addEventListener("click", () => {
+            if (!recognition) return;
+            setStatus("Listening...");
+            recognition.start();
+        });
+
+        if (recognition) {
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript || "";
+                textInput.value = transcript;
+                updateCharCount();
+                updatePreview();
+            };
+
+            recognition.onerror = (event) => {
+                setStatus(`Speech error: ${event.error}`, "error");
+            };
+
+            recognition.onend = () => {
+                if (!statusEl.classList.contains("error")) {
+                    setStatus("Speech input completed.");
+                }
+            };
+        }
+
+        window.addEventListener("resize", () => {
+            resizeCanvas();
+            schedulePreview();
+        });
+
+        resizeCanvas();
+        updateCharCount();
+    </script>
+</body>
+</html>
