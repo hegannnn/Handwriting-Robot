@@ -164,7 +164,10 @@
             font-size: 0.84rem;
         }
 
-        .direct-mode {
+        .port-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             margin-top: 14px;
             padding: 12px;
             border-radius: 12px;
@@ -172,37 +175,15 @@
             border: 1px solid rgba(89, 108, 75, 0.2);
         }
 
-        .toggle-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .port-section label {
             font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .toggle-label input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .port-selector {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(89, 108, 75, 0.15);
-        }
-
-        .port-selector label {
-            font-size: 0.88rem;
             color: var(--ink-700);
+            white-space: nowrap;
         }
 
-        .port-selector select {
+        .port-section select {
             flex: 1;
-            padding: 6px 10px;
+            padding: 8px 10px;
             border-radius: 8px;
             border: 1px solid rgba(31, 74, 88, 0.28);
             background: rgba(255, 252, 246, 0.95);
@@ -211,7 +192,7 @@
         }
 
         .btn-small {
-            padding: 6px 10px;
+            padding: 8px 10px;
             font-size: 0.85rem;
             background: rgba(31, 74, 88, 0.12);
             color: var(--ink-900);
@@ -298,18 +279,12 @@
                     <button id="runBtn" class="btn-run" type="button">Start Writing</button>
                 </div>
 
-                <div class="direct-mode">
-                    <label class="toggle-label">
-                        <input type="checkbox" id="directModeToggle">
-                        <span>Send directly to machine (requires UGS disconnected)</span>
-                    </label>
-                    <div id="portSelector" class="port-selector" style="display: none;">
-                        <label for="portSelect">Serial Port:</label>
-                        <select id="portSelect">
-                            <option value="">Select port...</option>
-                        </select>
-                        <button id="refreshPortsBtn" type="button" class="btn-small">↻</button>
-                    </div>
+                <div class="port-section">
+                    <label for="portSelect">Machine Port:</label>
+                    <select id="portSelect">
+                        <option value="">Select port...</option>
+                    </select>
+                    <button id="refreshPortsBtn" type="button" class="btn-small">↻</button>
                 </div>
 
                 <div class="chips">
@@ -472,32 +447,24 @@
                 return;
             }
 
-            const directMode = document.getElementById("directModeToggle").checked;
             const portSelect = document.getElementById("portSelect");
+            const port = portSelect.value;
             
-            if (directMode) {
-                const port = portSelect.value;
-                if (!port) {
-                    setStatus("Select a serial port first.", "error");
-                    return;
-                }
-                
-                setStatus("Generating G-code and sending to machine...");
-                try {
-                    const data = await postJson("/process", { text, dry_run: false, port: port });
-                    setStatus(`Writing complete! Sent ${data.strokes || 0} strokes to ${port}.`, "success");
-                } catch (err) {
-                    setStatus(`Failed: ${err.message}`, "error");
-                }
-            } else {
-                setStatus("Generating G-code...");
-                try {
-                    const data = await postJson("/process", { text, dry_run: true });
-                    const filePath = data.gcode_file || "output_gcode/web_handwriting.gcode";
-                    setStatus(`Done! Load in UGS: ${filePath}`, "success");
-                } catch (err) {
-                    setStatus(`Generation failed: ${err.message}`, "error");
-                }
+            if (!port) {
+                setStatus("Select a serial port first.", "error");
+                return;
+            }
+            
+            setStatus("Sending to machine...");
+            document.getElementById("runBtn").disabled = true;
+            
+            try {
+                const data = await postJson("/process", { text, dry_run: false, port: port });
+                setStatus(`Writing complete! Sent ${data.strokes || 0} strokes.`, "success");
+            } catch (err) {
+                setStatus(`Failed: ${err.message}`, "error");
+            } finally {
+                document.getElementById("runBtn").disabled = false;
             }
         }
 
@@ -544,20 +511,10 @@
             setStatus("Cleared.");
         });
 
-        document.getElementById("directModeToggle").addEventListener("change", (e) => {
-            const portSelector = document.getElementById("portSelector");
-            const runBtn = document.getElementById("runBtn");
-            if (e.target.checked) {
-                portSelector.style.display = "flex";
-                runBtn.textContent = "Start Writing (Direct)";
-                fetchPorts();
-            } else {
-                portSelector.style.display = "none";
-                runBtn.textContent = "Start Writing";
-            }
-        });
-
         document.getElementById("refreshPortsBtn").addEventListener("click", fetchPorts);
+
+        // Load ports on page load
+        fetchPorts();
 
         textInput.addEventListener("input", () => {
             updateCharCount();
