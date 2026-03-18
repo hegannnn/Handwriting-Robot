@@ -100,7 +100,7 @@ def _stream_gcode(gcode_lines: List[str], port: str, baudrate: int, line_timeout
 
         ser.write(b"\r\n")
         ser.flush()
-        time.sleep(0.2)
+        _wait_for_ok(ser, timeout_s=3.0)   # consume the wakeup "ok" so streaming stays in sync
 
         for raw_line in gcode_lines:
             line = raw_line.split(";", 1)[0].strip()
