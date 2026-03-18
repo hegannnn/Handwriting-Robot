@@ -170,6 +170,8 @@ def process():
     if not filename:
         filename = "web_handwriting"
 
+    scale_mm = data.get("scale_mm", 150.0)
+
     strokes = assemble_words(text)
     if not strokes:
         return jsonify({
@@ -179,7 +181,7 @@ def process():
 
     try:
         with contextlib.redirect_stdout(io.StringIO()):
-            gcode_lines = strokes_to_gcode(strokes, filename=filename)
+            gcode_lines = strokes_to_gcode(strokes, filename=filename, scale_mm=scale_mm)
     except Exception as exc:
         return jsonify({
             "status": "error",
@@ -223,6 +225,8 @@ def process():
             line_timeout_s=float(data.get("line_timeout_s") or os.getenv("ROBOT_LINE_TIMEOUT_S", "8"))
         )
     except Exception as exc:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "status": "error",
             "message": f"Hardware write failed: {exc}",

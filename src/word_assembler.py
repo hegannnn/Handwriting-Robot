@@ -102,7 +102,7 @@ CHAR_WIDTH_TABLE = {
 # MAIN ASSEMBLER
 # ──────────────────────────────────────────────────────────────
 
-def assemble_human_hierarchy_text(text, line_height=13, char_padding=0.3):
+def assemble_human_hierarchy_text(text, line_height=22, char_padding=0.5):
     """
     Convert a string into a list of positioned, human-naturalised
     stroke paths (each path is a list of [x, y] points in mm).
@@ -126,7 +126,7 @@ def assemble_human_hierarchy_text(text, line_height=13, char_padding=0.3):
       3. cubic spline → C² continuous curves
       4. Gaussian  → final soft pass (σ = 1.6)
     """
-    BASE_SCALE    = 0.07       # capital letters ≈ 7 mm
+    BASE_SCALE    = 0.12       # capital letters ≈ 12 mm (increased from 0.07 for larger handwriting)
     LOWER_RATIO   = 0.70       # x-height / cap-height
     ASCENDER_RATIO = 0.90      # ascenders reach 90 % of cap height
     CAP_HEIGHT    = BASE_SCALE * 100          # 7.0 mm
@@ -135,10 +135,10 @@ def assemble_human_hierarchy_text(text, line_height=13, char_padding=0.3):
     ASCENDER_HT    = CAP_HEIGHT * ASCENDER_RATIO  # 6.3 mm
     DESCENDER_DROP = CAP_HEIGHT * 0.28         # ~2.0 mm below baseline
 
-    PAGE_WIDTH_MM  = 190
-    LEFT_MARGIN    = 10.0
+    PAGE_WIDTH_MM  = 140
+    LEFT_MARGIN    = 5.0
     current_x      = LEFT_MARGIN
-    current_y      = 25.0          # top of FIRST cap-height zone
+    current_y      = 10.0          # top of FIRST cap-height zone
     all_strokes    = []
 
     line_drift = 0.0
@@ -277,7 +277,7 @@ if __name__ == "__main__":
     else:
         final_path = assemble_human_hierarchy_text(user_input)
 
-        fig, ax = plt.subplots(figsize=(8.27, 11.69))
+        fig, ax = plt.subplots(figsize=(5.91, 5.91))
         fig.patch.set_facecolor('#fffef0')          # paper-like background
         ax.set_facecolor('#fffef0')
 
@@ -288,8 +288,8 @@ if __name__ == "__main__":
                     solid_capstyle='round', solid_joinstyle='round')
 
         ax.set_aspect('equal')
-        ax.set_xlim(0, 210)
-        ax.set_ylim(297, 0)
+        ax.set_xlim(0, 150)
+        ax.set_ylim(150, 0)
         ax.set_title(f'Human Handwriting Preview  —  "{user_input}"', fontsize=9)
         ax.axis('off')
         plt.tight_layout()
