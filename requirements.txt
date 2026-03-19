@@ -7,3 +7,6 @@ scikit-image==0.26.0
 openai-whisper==20250625
 sounddevice==0.5.5
 pyserial==3.5
+# The following are local modules, not installable via pip:
+# gcode_generator
+# word_assembler
