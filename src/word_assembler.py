@@ -238,20 +238,20 @@ def assemble_human_hierarchy_text(text, line_height=22, char_padding=0.5):
                 #    Applied to ALL characters: letters, numbers, symbols
                 smoothed = smooth_stroke(
                     positioned,
-                    resample_spacing=0.20,     # very tight resampling
-                    chaikin_iters=3,           # 3 passes of corner cutting
-                    spline_factor=2.5,         # dense cubic spline
-                    gauss_sigma=2.0,           # strong Gaussian blur for silk-smooth curves
+                    resample_spacing=0.20,     # balanced resampling
+                    chaikin_iters=3,           # 3 passes of corner cutting (good balance)
+                    spline_factor=2.5,         # cubic spline interpolation
+                    gauss_sigma=2.5,           # strong Gaussian blur for smooth curves
                 )
 
                 # 3. Forward cursive slant (gentle)
                 slanted = apply_forward_slant(smoothed, shear=0.10)
 
-                # 4. Very subtle micro-jitter (hand tremor)
-                jittered = add_micro_jitter(slanted, jitter=0.08)
+                # 4. Minimal micro-jitter (reduced hand tremor for smoother output)
+                jittered = add_micro_jitter(slanted, jitter=0.02)
 
-                # 5. Very subtle baseline wobble
-                wobbled = add_baseline_wobble(jittered, wobble=0.03)
+                # 5. Minimal baseline wobble (reduced for smoother output)
+                wobbled = add_baseline_wobble(jittered, wobble=0.01)
 
                 all_strokes.append(wobbled)
 

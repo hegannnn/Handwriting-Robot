@@ -522,7 +522,7 @@ async function saveGcode() {
         let previewTimer = null;
         function schedulePreview() {
             clearTimeout(previewTimer);
-            previewTimer = setTimeout(updatePreview, 320);
+            previewTimer = setTimeout(updatePreview, 150);
         }
 
         document.getElementById("previewBtn").addEventListener("click", updatePreview);
