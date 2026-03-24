@@ -276,7 +276,7 @@
                     <button id="previewBtn" class="btn-preview" type="button">Refresh Preview</button>
                     <button id="micBtn" class="btn-mic" type="button">Use Microphone</button>
                     <button id="clearBtn" class="btn-clear" type="button">Clear</button>
-                    <button id="saveGcodeBtn" class="btn-preview" type="button">Save G-code</button>
+                    <button id="saveGcodeBtn" class="btn-preview" type="button">Download G-code</button>
                     <button id="runBtn" class="btn-run" type="button">Start Writing</button>
                 </div>
 
@@ -474,16 +474,26 @@ async function sendToRobot() {
 async function saveGcode() {
             const text = textInput.value.trim();
             if (!text) {
-                setStatus("Enter text before saving.", "error");
+                setStatus("Enter text before downloading.", "error");
                 return;
             }
 
-            setStatus("Generating G-code file...");
+            setStatus("Generating G-code...");
             document.getElementById("saveGcodeBtn").disabled = true;
 
             try {
                 const data = await postJson("/process", { text, dry_run: true, scale_mm: 150 });
-                setStatus(`G-code saved to: ${data.gcode_file}  (${data.strokes} strokes). Open this file in UGS to send to machine.`, "success");
+
+                // Trigger browser download
+                const blob = new Blob([data.gcode_content], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "handwriting.gcode";
+                a.click();
+                URL.revokeObjectURL(url);
+
+                setStatus(`Downloaded handwriting.gcode (${data.strokes} strokes). Open in UGS to send to machine.`, "success");
             } catch (err) {
                 setStatus(`Failed: ${err.message}`, "error");
             } finally {

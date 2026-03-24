@@ -192,8 +192,9 @@ def process():
     if dry_run:
         return jsonify({
             "status": "success",
-            "message": "G-code generated (dry run only, not sent to robot).",
+            "message": "G-code generated.",
             "gcode_file": gcode_path,
+            "gcode_content": "\n".join(gcode_lines),
             "strokes": len(strokes),
             "dry_run": True
         })
