@@ -277,7 +277,6 @@
                     <button id="micBtn" class="btn-mic" type="button">Use Microphone</button>
                     <button id="clearBtn" class="btn-clear" type="button">Clear</button>
                     <button id="saveGcodeBtn" class="btn-preview" type="button">Download G-code</button>
-                    <button id="runBtn" class="btn-run" type="button">Start Writing</button>
                 </div>
 
                 <div class="port-section">
@@ -570,7 +569,6 @@ async function saveGcode() {
         }
 
         document.getElementById("previewBtn").addEventListener("click", updatePreview);
-        document.getElementById("runBtn").addEventListener("click", sendToRobot);
         document.getElementById("saveGcodeBtn").addEventListener("click", saveGcode);
         document.getElementById("clearBtn").addEventListener("click", () => {
             textInput.value = "";
