@@ -79,11 +79,12 @@ def main():
         blocked = False
         for word in BLOCK_WORDS:
             if word in text.lower():
-                print(f"   BLOCKED: '{word}' is not allowed.\n")
+                print(f"\n⚠️  WARNING: BLOCKED CONTENT DETECTED ⚠️")
+                print("   System execution stopped.\n")
                 blocked = True
                 break
         if blocked:
-            continue
+            break
 
         # Assemble strokes
         strokes = assemble_human_hierarchy_text(text)

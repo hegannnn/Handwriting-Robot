@@ -8,6 +8,8 @@ from typing import List, Optional
 
 sys.path.append(os.path.abspath("./src"))
 
+BLOCK_WORDS = ["Signature", "Sign here", "Yours sincerely", "Yours faithfully"]
+
 try:
     from word_assembler import assemble_human_hierarchy_text as assemble_words
 except ImportError:
@@ -30,6 +32,15 @@ except ImportError:
     list_ports = None
 
 app = Flask(__name__)
+
+
+def check_blocked_words(text: str) -> str:
+    """Check if text contains any blocked words. Returns the blocked word if found, None otherwise."""
+    lower_text = text.lower()
+    for word in BLOCK_WORDS:
+        if word.lower() in lower_text:
+            return word
+    return None
 
 
 def _parse_bool(value, default=False):
@@ -140,6 +151,14 @@ def preview():
             "arrangement": []
         })
 
+    # Check for blocked words
+    blocked_word = check_blocked_words(text)
+    if blocked_word:
+        return jsonify({
+            "status": "error",
+            "message": f"⚠️  WARNING: BLOCKED CONTENT DETECTED ⚠️\n   '{blocked_word}' is not allowed.\n   System execution stopped."
+        }), 400
+
     arrangement = assemble_words(text)
 
     return jsonify({
@@ -163,6 +182,14 @@ def process():
         return jsonify({
             "status": "error",
             "message": "Please enter text before starting."
+        }), 400
+
+    # Check for blocked words
+    blocked_word = check_blocked_words(text)
+    if blocked_word:
+        return jsonify({
+            "status": "error",
+            "message": f"⚠️  WARNING: BLOCKED CONTENT DETECTED ⚠️\n   '{blocked_word}' is not allowed.\n   System execution stopped."
         }), 400
 
     filename = (data.get("filename") or "web_handwriting").strip() or "web_handwriting"

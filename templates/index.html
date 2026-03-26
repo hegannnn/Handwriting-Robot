@@ -311,6 +311,8 @@
     </main>
 
     <script>
+        const BLOCK_WORDS = ["Signature", "Sign here", "Yours sincerely", "Yours faithfully"];
+
         const textInput = document.getElementById("textInput");
         const canvas = document.getElementById("previewCanvas");
         const statusEl = document.getElementById("status");
@@ -340,6 +342,16 @@
             if (type) {
                 statusEl.classList.add(type);
             }
+        }
+
+        function checkBlockedWords(text) {
+            const lowerText = text.toLowerCase();
+            for (const word of BLOCK_WORDS) {
+                if (lowerText.includes(word.toLowerCase())) {
+                    return word;
+                }
+            }
+            return null;
         }
 
         function resizeCanvas() {
@@ -434,6 +446,14 @@ async function updatePreview() {
                 return;
             }
 
+            // Check for blocked words
+            const blockedWord = checkBlockedWords(text);
+            if (blockedWord) {
+                setStatus(`⚠️  WARNING: BLOCKED CONTENT DETECTED ⚠️  '${blockedWord}' is not allowed. System execution stopped.`, "error");
+                ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+                return;
+            }
+
             setStatus("Fetching preview...");
             try {
                 const data = await postJson("/preview", { text, scale_mm: 150 });
@@ -447,6 +467,13 @@ async function sendToRobot() {
             const text = textInput.value.trim();
             if (!text) {
                 setStatus("Enter text before starting.", "error");
+                return;
+            }
+
+            // Check for blocked words
+            const blockedWord = checkBlockedWords(text);
+            if (blockedWord) {
+                setStatus(`⚠️  WARNING: BLOCKED CONTENT DETECTED ⚠️  '${blockedWord}' is not allowed. System execution stopped.`, "error");
                 return;
             }
 
@@ -475,6 +502,13 @@ async function saveGcode() {
             const text = textInput.value.trim();
             if (!text) {
                 setStatus("Enter text before downloading.", "error");
+                return;
+            }
+
+            // Check for blocked words
+            const blockedWord = checkBlockedWords(text);
+            if (blockedWord) {
+                setStatus(`⚠️  WARNING: BLOCKED CONTENT DETECTED ⚠️  '${blockedWord}' is not allowed. System execution stopped.`, "error");
                 return;
             }
 
@@ -564,6 +598,14 @@ async function saveGcode() {
         if (recognition) {
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript || "";
+                
+                // Check for blocked words in speech input
+                const blockedWord = checkBlockedWords(transcript);
+                if (blockedWord) {
+                    setStatus(`⚠️  WARNING: BLOCKED CONTENT DETECTED ⚠️  '${blockedWord}' is not allowed. System execution stopped.`, "error");
+                    return;
+                }
+                
                 textInput.value = transcript;
                 updateCharCount();
                 updatePreview();
