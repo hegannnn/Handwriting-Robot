@@ -16,9 +16,11 @@ def strokes_to_gcode(
     Converts stroke paths to G-code for this pen plotter.
 
     Machine coordinate system:
-      Origin : bottom-right corner of paper
+      Origin : top-right corner of paper
       X+     : moves LEFT
-      Y+     : moves UP
+      X-     : moves RIGHT
+      Y+     : moves UP  (toward top / home)
+      Y-     : moves DOWN (into the page)
       Z+     : pen UP  (Z=0 = pen touching paper)
 
     Software coordinate system (word_assembler output):
@@ -26,8 +28,9 @@ def strokes_to_gcode(
       X+     : right
       Y+     : down
 
-    Both axes are flipped to match.  The flip uses the bounding box of
-    the generated strokes so the drawing is centred on the usable area.
+    X is mirrored (software-right → machine-left, both anchored to the
+    right edge where X=0).  Y is shifted so the top of the text block
+    lands at Y=0 (home) and writing downward produces negative Y values.
     """
 
     print(f"DEBUG: Received {len(strokes)} strokes")
@@ -49,12 +52,12 @@ def strokes_to_gcode(
     print(f"STROKE BOUNDS: X[{min_x:.1f}, {max_x:.1f}]  Y[{min_y:.1f}, {max_y:.1f}]")
 
     def tx(x):
-        """Flip X so software-right becomes machine-left."""
+        """Mirror X so software-right becomes machine-left (origin on right)."""
         return max_x - (x - min_x) if flip_x else x
 
     def ty(y):
-        """Flip Y so software-down becomes machine-up."""
-        return max_y - (y - min_y) if flip_y else y
+        """Shift Y so top of text = Y 0 (home), downward = negative Y."""
+        return -(y - min_y) if flip_y else y
 
     gcode = []
 
